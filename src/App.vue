@@ -168,9 +168,9 @@
             </el-statistic>
           </div>
           <div class="stat-item">
-            <el-statistic title="平均耗时" :value="averageTime">
+            <el-statistic title="平均耗时" :value="averageTimeValue">
               <template #suffix>
-                <el-icon><Timer /></el-icon>
+                {{ averageTimeSuffix }}
               </template>
             </el-statistic>
           </div>
@@ -219,11 +219,11 @@
           <div class="stat-item">
             <el-statistic 
               title="最大重量" 
-              :value="maxWeight.weight" 
-              :formatter="(value) => value?.replace(/[公克]/, '')"
+              :value="maxWeight.weight"
+              :formatter="(value) => value.toString()"
             >
               <template #suffix>
-                {{ maxWeight.name }}
+                {{ maxWeight.unit }} {{ maxWeight.name }}
               </template>
             </el-statistic>
           </div>
@@ -278,7 +278,7 @@ const filters = ref({
 const fishTypes = computed(() => [...new Set(fishData.value.map(item => item.name))])
 const categories = computed(() => [...new Set(fishData.value.map(item => item.category))])
 const baits = computed(() => [...new Set(fishData.value.map(item => item.bait))])
-
+//测试
 // 计算属性：统计信息
 const totalExp = computed(() => 
   fishData.value.reduce((sum, item) => sum + parseInt(item.exp), 0)
@@ -297,12 +297,16 @@ const averageExp = computed(() =>
 )
 
 const maxWeight = computed(() => {
-  if (!fishData.value.length) return { weight: '0克', name: '-' }
+  if (!fishData.value.length) return { weight: 0, name: '-', unit: '克' }
   return fishData.value.reduce((max, current) => {
     const currentWeight = parseFloat(current.weight.replace(/[公克]/, ''))
-    const maxWeight = parseFloat(max.weight.replace(/[公克]/, ''))
-    return currentWeight > maxWeight ? current : max
-  })
+    const maxWeight = parseFloat(max.weight.toString().replace(/[公克]/, ''))
+    return currentWeight > maxWeight ? {
+      weight: currentWeight,
+      name: current.name,
+      unit: current.weight.includes('公斤') ? '公斤' : '克'
+    } : max
+  }, { weight: 0, name: '-', unit: '克' })
 })
 
 const maxExp = computed(() => {
@@ -312,19 +316,22 @@ const maxExp = computed(() => {
   )
 })
 
-const averageTime = computed(() => {
+const averageTimeValue = computed(() => {
   const times = fishData.value.map(item => item.time_seconds)
-  if (!times.length) return '0秒'
-  
-  const avgSeconds = Math.floor(times.reduce((a, b) => a + b) / times.length)
-  const hours = Math.floor(avgSeconds / 3600)
-  const minutes = Math.floor((avgSeconds % 3600) / 60)
-  const seconds = avgSeconds % 60
+  if (!times.length) return 0
+  return Math.floor(times.reduce((a, b) => a + b) / times.length)
+})
+
+const averageTimeSuffix = computed(() => {
+  const seconds = averageTimeValue.value
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
   
   let result = ''
   if (hours > 0) result += `${hours}时`
   if (minutes > 0) result += `${minutes}分`
-  if (seconds > 0 || (!hours && !minutes)) result += `${seconds}秒`
+  if (remainingSeconds > 0 || (!hours && !minutes)) result += `${remainingSeconds}秒`
   return result
 })
 
