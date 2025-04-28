@@ -278,7 +278,6 @@ const filters = ref({
 const fishTypes = computed(() => [...new Set(fishData.value.map(item => item.name))])
 const categories = computed(() => [...new Set(fishData.value.map(item => item.category))])
 const baits = computed(() => [...new Set(fishData.value.map(item => item.bait))])
-//测试
 // 计算属性：统计信息
 const totalExp = computed(() => 
   fishData.value.reduce((sum, item) => sum + parseInt(item.exp), 0)
